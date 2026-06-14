@@ -2,8 +2,7 @@ services:
   api-manager:
     image: 'wso2/wso2am:4.7.0'
     container_name: api-manager
-    # IMPORTANTE: Deixamos as portas comentadas ou removidas para o Coolify gerenciar via Proxy.
-    # O Coolify vai ler as portas abaixo e você definirá os domínios na interface gráfica.
+    restart: unless-stopped
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -15,46 +14,53 @@ services:
       - WSO2_DATABASE_NAME=wso2amdb
       - WSO2_DATABASE_USER=wso2amdbuser
       - WSO2_DATABASE_PASSWORD=wso2amdbpass
+    expose:
+      - '9443' # Porta do Console de Administração, Publisher e DevPortal
+      - '8243' # Porta do Gateway HTTPS (onde batem as chamadas de API)
     volumes:
-      - wso2_repository:/home/wso2user/wso2am-4.7.0/repository
-    networks:
-      - wso2am_network
+      - 'wso2_repository:/home/wso2user/wso2am-4.7.0/repository'
 
   mysql-db:
     image: 'mysql:8.0'
     container_name: mysql-db
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_USER: wso2amdbuser
       MYSQL_PASSWORD: wso2amdbpass
       MYSQL_DATABASE: wso2amdb
+    expose:
+      - '3306'
     volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - wso2am_network
+      - 'mysql_data:/var/lib/mysql'
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "wso2amdbuser", "-pwso2amdbpass"]
-      interval: 5s
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - '-h'
+        - localhost
+        - '-u'
+        - wso2amdbuser
+        - '-pwso2amdbpass'
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
+    image: 'phpmyadmin/phpmyadmin:latest'
     container_name: phpmyadmin
-    # Removida a porta externa 8088:80. O Coolify vai usar o domínio configurado.
+    restart: unless-stopped
     depends_on:
       - mysql-db
     environment:
       - PMA_HOST=mysql-db
       - PMA_PORT=3306
       - PMA_ARBITRARY=1
-    networks:
-      - wso2am_network
+    expose:
+      - '80' # Porta padrão interna do phpMyAdmin
 
 volumes:
-  mysql_data:
-  wso2_repository:
-
-networks:
-  wso2am_network:
-    driver: bridge
+  mysql_data: null
+  wso2_repository: null
