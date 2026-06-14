@@ -1,0 +1,60 @@
+services:
+  api-manager:
+    image: 'wso2/wso2am:4.7.0'
+    container_name: api-manager
+    # IMPORTANTE: Deixamos as portas comentadas ou removidas para o Coolify gerenciar via Proxy.
+    # O Coolify vai ler as portas abaixo e você definirá os domínios na interface gráfica.
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      - WSO2_USER=wso2user
+      - WSO2_PASSWORD=wso2pass
+      - WSO2_DATABASE_HOST=mysql-db
+      - WSO2_DATABASE_PORT=3306
+      - WSO2_DATABASE_NAME=wso2amdb
+      - WSO2_DATABASE_USER=wso2amdbuser
+      - WSO2_DATABASE_PASSWORD=wso2amdbpass
+    volumes:
+      - wso2_repository:/home/wso2user/wso2am-4.7.0/repository
+    networks:
+      - wso2am_network
+
+  mysql-db:
+    image: 'mysql:8.0'
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_USER: wso2amdbuser
+      MYSQL_PASSWORD: wso2amdbpass
+      MYSQL_DATABASE: wso2amdb
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - wso2am_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "wso2amdbuser", "-pwso2amdbpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    # Removida a porta externa 8088:80. O Coolify vai usar o domínio configurado.
+    depends_on:
+      - mysql-db
+    environment:
+      - PMA_HOST=mysql-db
+      - PMA_PORT=3306
+      - PMA_ARBITRARY=1
+    networks:
+      - wso2am_network
+
+volumes:
+  mysql_data:
+  wso2_repository:
+
+networks:
+  wso2am_network:
+    driver: bridge
