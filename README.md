@@ -56,6 +56,13 @@ Use domínios reais nas variáveis `APIM_HOSTNAME`, `APIM_MGT_BASE_URL`, `APIM_G
 
 As portas `9443` e `8243` do WSO2 aceitam somente HTTPS internamente. Se o domínio retornar `Bad Request: This combination of host and port requires TLS`, o Traefik está tentando falar HTTP com uma porta TLS do WSO2.
 
+O `docker-compose.yaml` já cria um router Traefik para o gateway HTTPS usando `TRAEFIK_GATEWAY_HOST` e apontando para a porta interna `8243` com `server.scheme=https`. Para `gateway.noogym.com`, defina:
+
+```env
+TRAEFIK_GATEWAY_HOST=gateway.noogym.com
+APIM_GATEWAY_HTTPS_URL=https://gateway.noogym.com
+```
+
 No Coolify, exponha apenas a porta que o domínio deve usar:
 
 - `9443` para Publisher, DevPortal, Admin Console e Carbon.
