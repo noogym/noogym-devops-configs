@@ -52,40 +52,38 @@ Portas internas esperadas:
 
 Use domínios reais nas variáveis `APIM_HOSTNAME`, `APIM_MGT_BASE_URL`, `APIM_GATEWAY_HTTP_URL`, `APIM_GATEWAY_HTTPS_URL`, `APIM_GATEWAY_WS_URL` e `APIM_GATEWAY_WSS_URL`.
 
-### Coolify/Traefik com backend HTTPS
+### Coolify/Caddy com backend HTTPS
 
-As portas `9443` e `8243` do WSO2 aceitam somente HTTPS internamente. Se o domínio retornar `Bad Request: This combination of host and port requires TLS`, o Traefik está tentando falar HTTP com uma porta TLS do WSO2.
+As portas `9443` e `8243` do WSO2 aceitam somente HTTPS internamente. Se o domínio retornar `Bad Request: This combination of host and port requires TLS`, o Caddy está tentando falar HTTP com uma porta TLS do WSO2.
 
-O `docker-compose.yaml` já cria routers Traefik para o gateway usando `TRAEFIK_GATEWAY_HOST` e apontando para a porta interna `8243` com `server.scheme=https`. Ele cobre os entrypoints comuns `http`/`https` e `web`/`websecure`, porque o nome varia entre instalações do Coolify/Traefik. Para `gateway.noogym.com`, defina:
+O `docker-compose.yaml` já cria labels Caddy para o gateway usando `CADDY_GATEWAY_HOST` e apontando para a porta interna `8243` com upstream HTTPS. Como o WSO2 usa certificado interno autoassinado, o label `caddy.reverse_proxy.transport.tls_insecure_skip_verify` também é aplicado. Para `gateway.noogym.com`, defina:
 
 ```env
-TRAEFIK_GATEWAY_HOST=gateway.noogym.com
+CADDY_GATEWAY_HOST=gateway.noogym.com
+CADDY_INGRESS_NETWORK=coolify
 APIM_GATEWAY_HTTPS_URL=https://gateway.noogym.com
 ```
 
-Se o Coolify tiver criado outro router automático para o mesmo domínio, remova esse router/label automático ou garanta que os routers `wso2-gateway-*` tenham prioridade maior. Router automático apontando HTTP para `8243` causa o erro `This combination of host and port requires TLS`.
+Se o Coolify tiver criado outra configuração automática para o mesmo domínio, remova esse domínio/configuração automática ou garanta que os labels `caddy.*` deste compose sejam os que ficam ativos. Configuração automática apontando HTTP para `8243` causa o erro `This combination of host and port requires TLS`.
 
 No Coolify, exponha apenas a porta que o domínio deve usar:
 
 - `9443` para Publisher, DevPortal, Admin Console e Carbon.
 - `8243` para o Gateway HTTPS de consumo das APIs.
 
-Em `Custom Docker Labels`/`Traefik Labels`, configure o serviço do Coolify para falar HTTPS com o backend:
+Em `Custom Docker Labels`, a configuração equivalente para o gateway é:
 
 ```ini
-traefik.http.services.<NOME_DO_SERVICO>.loadbalancer.server.scheme=https
-traefik.http.services.<NOME_DO_SERVICO>.loadbalancer.server.port=8243
+caddy=gateway.noogym.com
+caddy.reverse_proxy={{upstreams https 8243}}
+caddy.reverse_proxy.transport=http
+caddy.reverse_proxy.transport.tls_insecure_skip_verify=
+caddy_ingress_network=coolify
 ```
 
-Use `9443` no `server.port` quando o domínio for para os consoles de administração. Para `gateway.noogym.com`, normalmente use `8243`.
+Use `9443` no upstream quando o domínio for para os consoles de administração. Para `gateway.noogym.com`, normalmente use `8243`.
 
-Se o Traefik rejeitar o certificado interno autoassinado do WSO2, configure um server transport inseguro no Coolify/Traefik:
-
-```ini
-traefik.http.services.<NOME_DO_SERVICO>.loadbalancer.servertransport=insecure-transport@file
-```
-
-Com Cloudflare em proxy ativo, mantenha o modo SSL/TLS como `Full` ou `Full (Strict)`. Evite `Flexible`, porque ele pode forçar HTTP entre Cloudflare e Traefik.
+Com Cloudflare em proxy ativo, mantenha o modo SSL/TLS como `Full` ou `Full (Strict)`. Evite `Flexible`, porque ele pode forçar HTTP entre Cloudflare e Caddy.
 
 ## Observações
 
