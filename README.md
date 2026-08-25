@@ -8,7 +8,7 @@ Este compose sobe:
 
 - WSO2 API Manager 4.7.0 com MySQL Connector/J.
 - MySQL 8.0 inicializado com os schemas oficiais do WSO2 para `shared_db` e `apim_db`.
-- Nginx interno `gateway-proxy` para publicar o Gateway WSO2 no Caddy/Coolify sem erro de TLS.
+- Nginx interno `gateway-proxy`, buildado por este repo, para publicar o Gateway WSO2 no Caddy/Coolify sem erro de TLS.
 - phpMyAdmin opcional, isolado no profile `tools`.
 
 ## Configuração
@@ -58,7 +58,7 @@ Use domínios reais nas variáveis `APIM_HOSTNAME`, `APIM_MGT_BASE_URL`, `APIM_G
 
 As portas `9443` e `8243` do WSO2 aceitam somente HTTPS internamente. Se o domínio retornar `Bad Request: This combination of host and port requires TLS`, o Caddy está tentando falar HTTP com uma porta TLS do WSO2.
 
-Para evitar isso no Coolify/Caddy, o compose expõe o serviço `gateway-proxy` na porta HTTP `8080`. Esse proxy interno recebe HTTP do Caddy e chama o WSO2 em HTTPS na porta `8243`, com verificação TLS interna desativada para aceitar o certificado autoassinado do WSO2.
+Para evitar isso no Coolify/Caddy, o compose expõe o serviço `gateway-proxy` na porta HTTP `8080`. Esse proxy interno recebe HTTP do Caddy e chama o WSO2 em HTTPS na porta `8243`, com verificação TLS interna desativada para aceitar o certificado autoassinado do WSO2. A configuração do Nginx é copiada para dentro da imagem em build time, então o Coolify não precisa montar arquivo de configuração do host.
 
 Para `gateway.noogym.com`, defina:
 
