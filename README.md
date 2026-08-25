@@ -8,7 +8,7 @@ Este compose sobe:
 
 - WSO2 API Manager 4.7.0 com MySQL Connector/J.
 - MySQL 8.0 inicializado com os schemas oficiais do WSO2 para `shared_db` e `apim_db`.
-- Nginx interno `gateway-proxy`, buildado por este repo, para publicar o Gateway WSO2 no Caddy/Coolify sem erro de TLS.
+- Nginx interno `gateway-proxy`, buildado por este repo, para publicar o Gateway WSO2 no Caddy/Coolify sem erro de TLS e com healthcheck próprio.
 - phpMyAdmin opcional, isolado no profile `tools`.
 
 ## Configuração
