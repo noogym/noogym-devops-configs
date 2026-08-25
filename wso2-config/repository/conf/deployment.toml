@@ -1,0 +1,87 @@
+[server]
+hostname = "$env{APIM_HOSTNAME}"
+base_path = "$env{APIM_MGT_BASE_URL}"
+server_role = "default"
+
+[super_admin]
+username = "$env{APIM_ADMIN_USER}"
+password = "$env{APIM_ADMIN_PASSWORD}"
+create_admin_account = true
+
+[user_store]
+type = "database_unique_id"
+
+[database.shared_db]
+type = "mysql"
+url = "$env{SHARED_DB_URL}"
+username = "$env{SHARED_DB_USER}"
+password = "$env{SHARED_DB_PASSWORD}"
+driver = "com.mysql.cj.jdbc.Driver"
+pool_options.maxActive = 100
+pool_options.maxWait = 10000
+pool_options.validationInterval = 10000
+
+[database.apim_db]
+type = "mysql"
+url = "$env{APIM_DB_URL}"
+username = "$env{APIM_DB_USER}"
+password = "$env{APIM_DB_PASSWORD}"
+driver = "com.mysql.cj.jdbc.Driver"
+pool_options.maxActive = 50
+pool_options.maxWait = 30000
+pool_options.validationInterval = 10000
+
+[encryption]
+key = "$env{APIM_ENCRYPTION_KEY}"
+
+[keystore.tls]
+file_name = "wso2carbon.jks"
+type = "JKS"
+password = "wso2carbon"
+alias = "wso2carbon"
+key_password = "wso2carbon"
+
+[apim]
+gateway_type = "Regular,APK,AWS,Azure,Kong,Envoy,APIPlatform"
+
+[[apim.gateway.environment]]
+name = "Default"
+type = "hybrid"
+gateway_type = "Regular"
+provider = "wso2"
+display_in_api_console = true
+description = "Default gateway for production and sandbox traffic."
+show_as_token_endpoint_url = true
+service_url = "$env{APIM_MGT_BASE_URL}/services/"
+username = "$env{APIM_ADMIN_USER}"
+password = "$env{APIM_ADMIN_PASSWORD}"
+ws_endpoint = "$env{APIM_GATEWAY_WS_URL}"
+wss_endpoint = "$env{APIM_GATEWAY_WSS_URL}"
+http_endpoint = "$env{APIM_GATEWAY_HTTP_URL}"
+https_endpoint = "$env{APIM_GATEWAY_HTTPS_URL}"
+websub_event_receiver_http_endpoint = "http://$env{APIM_HOSTNAME}:9021"
+websub_event_receiver_https_endpoint = "https://$env{APIM_HOSTNAME}:8021"
+
+[apim.sync_runtime_artifacts.gateway]
+gateway_labels = ["Default"]
+
+[[oauth.extensions.token_types]]
+name = "JWT"
+issuer = "org.wso2.is.key.manager.tokenpersistence.issuer.ExtendedJWTTokenIssuer"
+
+[apim.analytics]
+enable = false
+type = "moesif"
+
+[apim.ai]
+enable = false
+key = ""
+
+[apim.key_manager]
+enable_lightweight_apikey_generation = true
+
+[apim.cors]
+allow_origins = "*"
+allow_methods = ["GET","PUT","POST","DELETE","PATCH","OPTIONS"]
+allow_headers = ["authorization","Access-Control-Allow-Origin","Content-Type","SOAPAction","apikey","Internal-Key"]
+allow_credentials = false
