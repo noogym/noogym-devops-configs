@@ -56,12 +56,14 @@ Use domínios reais nas variáveis `APIM_HOSTNAME`, `APIM_MGT_BASE_URL`, `APIM_G
 
 As portas `9443` e `8243` do WSO2 aceitam somente HTTPS internamente. Se o domínio retornar `Bad Request: This combination of host and port requires TLS`, o Traefik está tentando falar HTTP com uma porta TLS do WSO2.
 
-O `docker-compose.yaml` já cria um router Traefik para o gateway HTTPS usando `TRAEFIK_GATEWAY_HOST` e apontando para a porta interna `8243` com `server.scheme=https`. Para `gateway.noogym.com`, defina:
+O `docker-compose.yaml` já cria routers Traefik para o gateway usando `TRAEFIK_GATEWAY_HOST` e apontando para a porta interna `8243` com `server.scheme=https`. Ele cobre os entrypoints comuns `http`/`https` e `web`/`websecure`, porque o nome varia entre instalações do Coolify/Traefik. Para `gateway.noogym.com`, defina:
 
 ```env
 TRAEFIK_GATEWAY_HOST=gateway.noogym.com
 APIM_GATEWAY_HTTPS_URL=https://gateway.noogym.com
 ```
+
+Se o Coolify tiver criado outro router automático para o mesmo domínio, remova esse router/label automático ou garanta que os routers `wso2-gateway-*` tenham prioridade maior. Router automático apontando HTTP para `8243` causa o erro `This combination of host and port requires TLS`.
 
 No Coolify, exponha apenas a porta que o domínio deve usar:
 
