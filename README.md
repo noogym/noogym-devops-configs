@@ -8,6 +8,7 @@ Este compose sobe:
 
 - WSO2 API Manager 4.7.0 com MySQL Connector/J.
 - MySQL 8.0 inicializado com os schemas oficiais do WSO2 para `shared_db` e `apim_db`.
+- Nginx interno `gateway-proxy` para publicar o Gateway WSO2 no Caddy/Coolify sem erro de TLS.
 - phpMyAdmin opcional, isolado no profile `tools`.
 
 ## Configuração
@@ -44,6 +45,7 @@ No Coolify, configure as variáveis do `.env.example` como environment variables
 
 Portas internas esperadas:
 
+- `8080`: proxy HTTP interno para o Gateway HTTPS do WSO2. Use esta porta no Coolify para `gateway.noogym.com`.
 - `9443`: Publisher, DevPortal, Admin e Carbon via HTTPS.
 - `8243`: Gateway HTTPS.
 - `8280`: Gateway HTTP.
@@ -56,7 +58,9 @@ Use domínios reais nas variáveis `APIM_HOSTNAME`, `APIM_MGT_BASE_URL`, `APIM_G
 
 As portas `9443` e `8243` do WSO2 aceitam somente HTTPS internamente. Se o domínio retornar `Bad Request: This combination of host and port requires TLS`, o Caddy está tentando falar HTTP com uma porta TLS do WSO2.
 
-O `docker-compose.yaml` já cria labels Caddy para o gateway usando `CADDY_GATEWAY_HOST` e apontando para a porta interna `8243` com upstream HTTPS. Como o WSO2 usa certificado interno autoassinado, o label `caddy.reverse_proxy.transport.tls_insecure_skip_verify` também é aplicado. Para `gateway.noogym.com`, defina:
+Para evitar isso no Coolify/Caddy, o compose expõe o serviço `gateway-proxy` na porta HTTP `8080`. Esse proxy interno recebe HTTP do Caddy e chama o WSO2 em HTTPS na porta `8243`, com verificação TLS interna desativada para aceitar o certificado autoassinado do WSO2.
+
+Para `gateway.noogym.com`, defina:
 
 ```env
 CADDY_GATEWAY_HOST=gateway.noogym.com
@@ -64,24 +68,22 @@ CADDY_INGRESS_NETWORK=coolify
 APIM_GATEWAY_HTTPS_URL=https://gateway.noogym.com
 ```
 
-Se o Coolify tiver criado outra configuração automática para o mesmo domínio, remova esse domínio/configuração automática ou garanta que os labels `caddy.*` deste compose sejam os que ficam ativos. Configuração automática apontando HTTP para `8243` causa o erro `This combination of host and port requires TLS`.
+No Coolify, o domínio `gateway.noogym.com` deve apontar para o serviço `gateway-proxy` na porta `8080`, ou ficar controlado pelos labels Caddy desse serviço. Não aponte `gateway.noogym.com` diretamente para `api-manager:9443` ou `api-manager:8243`, porque o Caddy automático do Coolify gera upstream HTTP e isso causa o erro `This combination of host and port requires TLS`.
 
 No Coolify, exponha apenas a porta que o domínio deve usar:
 
-- `9443` para Publisher, DevPortal, Admin Console e Carbon.
-- `8243` para o Gateway HTTPS de consumo das APIs.
+- `8080` no serviço `gateway-proxy` para o Gateway de consumo das APIs.
+- `9443` no serviço `api-manager` apenas para Publisher, DevPortal, Admin Console e Carbon, se você criar um domínio separado para administração.
 
-Em `Custom Docker Labels`, a configuração equivalente para o gateway é:
+Em `Custom Docker Labels`, a configuração equivalente para o gateway agora é:
 
 ```ini
 caddy=gateway.noogym.com
-caddy.reverse_proxy={{upstreams https 8243}}
-caddy.reverse_proxy.transport=http
-caddy.reverse_proxy.transport.tls_insecure_skip_verify=
+caddy.reverse_proxy={{upstreams 8080}}
 caddy_ingress_network=coolify
 ```
 
-Use `9443` no upstream quando o domínio for para os consoles de administração. Para `gateway.noogym.com`, normalmente use `8243`.
+Se precisar de um domínio para os consoles de administração, crie outro proxy/serviço ou configure o Caddy manualmente para chamar `https://api-manager:9443` com `tls_insecure_skip_verify`.
 
 Com Cloudflare em proxy ativo, mantenha o modo SSL/TLS como `Full` ou `Full (Strict)`. Evite `Flexible`, porque ele pode forçar HTTP entre Cloudflare e Caddy.
 

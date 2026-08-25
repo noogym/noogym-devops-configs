@@ -33,12 +33,6 @@ services:
       - "8243"
       - "8280"
       - "9099"
-    labels:
-      caddy: ${CADDY_GATEWAY_HOST:-gateway.noogym.com}
-      caddy.reverse_proxy: "{{upstreams https 8243}}"
-      caddy.reverse_proxy.transport: http
-      caddy.reverse_proxy.transport.tls_insecure_skip_verify: ""
-      caddy_ingress_network: ${CADDY_INGRESS_NETWORK:-coolify}
     networks:
       - wso2am_network
     healthcheck:
@@ -47,6 +41,24 @@ services:
       timeout: 10s
       retries: 30
       start_period: 180s
+    restart: unless-stopped
+
+  gateway-proxy:
+    image: nginx:1.27-alpine
+    container_name: gateway-proxy
+    depends_on:
+      api-manager:
+        condition: service_healthy
+    volumes:
+      - ./nginx/wso2-gateway-proxy.conf:/etc/nginx/nginx.conf:ro
+    expose:
+      - "8080"
+    labels:
+      caddy: ${CADDY_GATEWAY_HOST:-gateway.noogym.com}
+      caddy.reverse_proxy: "{{upstreams 8080}}"
+      caddy_ingress_network: ${CADDY_INGRESS_NETWORK:-coolify}
+    networks:
+      - wso2am_network
     restart: unless-stopped
 
   mysql-db:
