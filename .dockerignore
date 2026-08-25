@@ -1,0 +1,5 @@
+.git
+.env
+*.log
+mysql_data
+wso2_repository

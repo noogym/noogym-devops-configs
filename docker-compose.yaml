@@ -1,55 +1,95 @@
 services:
   api-manager:
-    image: 'wso2/wso2am:4.7.0'
+    build:
+      context: ./docker/wso2am
+    image: noogym-wso2am:4.7.0-mysql
     container_name: api-manager
-    # IMPORTANTE: Deixamos as portas comentadas ou removidas para o Coolify gerenciar via Proxy.
-    # O Coolify vai ler as portas abaixo e você definirá os domínios na interface gráfica.
     depends_on:
       mysql-db:
         condition: service_healthy
     environment:
-      - WSO2_USER=wso2user
-      - WSO2_PASSWORD=wso2pass
-      - WSO2_DATABASE_HOST=mysql-db
-      - WSO2_DATABASE_PORT=3306
-      - WSO2_DATABASE_NAME=wso2amdb
-      - WSO2_DATABASE_USER=wso2amdbuser
-      - WSO2_DATABASE_PASSWORD=wso2amdbpass
+      APIM_HOSTNAME: ${APIM_HOSTNAME:?set APIM_HOSTNAME}
+      APIM_ADMIN_USER: ${APIM_ADMIN_USER:?set APIM_ADMIN_USER}
+      APIM_ADMIN_PASSWORD: ${APIM_ADMIN_PASSWORD:?set APIM_ADMIN_PASSWORD}
+      APIM_ENCRYPTION_KEY: ${APIM_ENCRYPTION_KEY:?set APIM_ENCRYPTION_KEY}
+      APIM_MGT_BASE_URL: ${APIM_MGT_BASE_URL:?set APIM_MGT_BASE_URL}
+      APIM_GATEWAY_HTTP_URL: ${APIM_GATEWAY_HTTP_URL:?set APIM_GATEWAY_HTTP_URL}
+      APIM_GATEWAY_HTTPS_URL: ${APIM_GATEWAY_HTTPS_URL:?set APIM_GATEWAY_HTTPS_URL}
+      APIM_GATEWAY_WS_URL: ${APIM_GATEWAY_WS_URL:?set APIM_GATEWAY_WS_URL}
+      APIM_GATEWAY_WSS_URL: ${APIM_GATEWAY_WSS_URL:?set APIM_GATEWAY_WSS_URL}
+      SHARED_DB_NAME: ${SHARED_DB_NAME:?set SHARED_DB_NAME}
+      SHARED_DB_URL: ${SHARED_DB_URL:?set SHARED_DB_URL}
+      SHARED_DB_USER: ${SHARED_DB_USER:?set SHARED_DB_USER}
+      SHARED_DB_PASSWORD: ${SHARED_DB_PASSWORD:?set SHARED_DB_PASSWORD}
+      APIM_DB_NAME: ${APIM_DB_NAME:?set APIM_DB_NAME}
+      APIM_DB_URL: ${APIM_DB_URL:?set APIM_DB_URL}
+      APIM_DB_USER: ${APIM_DB_USER:?set APIM_DB_USER}
+      APIM_DB_PASSWORD: ${APIM_DB_PASSWORD:?set APIM_DB_PASSWORD}
     volumes:
-      - wso2_repository:/home/wso2user/wso2am-4.7.0/repository
+      - ./wso2-config:/home/wso2carbon/wso2-config-volume:ro
+      - wso2_repository:/home/wso2carbon/wso2am-4.7.0/repository/deployment/server
+    expose:
+      - "9443"
+      - "8243"
+      - "8280"
+      - "9099"
     networks:
       - wso2am_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -ksf https://localhost:9443/carbon/ >/dev/null || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 180s
+    restart: unless-stopped
 
   mysql-db:
-    image: 'mysql:8.0'
+    build:
+      context: ./docker/mysql
+    image: noogym-wso2am-mysql:8.0
     container_name: mysql-db
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_USER: wso2amdbuser
-      MYSQL_PASSWORD: wso2amdbpass
-      MYSQL_DATABASE: wso2amdb
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD}
+      SHARED_DB_NAME: ${SHARED_DB_NAME:?set SHARED_DB_NAME}
+      SHARED_DB_USER: ${SHARED_DB_USER:?set SHARED_DB_USER}
+      SHARED_DB_PASSWORD: ${SHARED_DB_PASSWORD:?set SHARED_DB_PASSWORD}
+      APIM_DB_NAME: ${APIM_DB_NAME:?set APIM_DB_NAME}
+      APIM_DB_USER: ${APIM_DB_USER:?set APIM_DB_USER}
+      APIM_DB_PASSWORD: ${APIM_DB_PASSWORD:?set APIM_DB_PASSWORD}
+      TZ: UTC
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_bin
+      - --default-time-zone=+00:00
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - wso2am_network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "wso2amdbuser", "-pwso2amdbpass"]
-      interval: 5s
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -P 3306 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
-    # Removida a porta externa 8088:80. O Coolify vai usar o domínio configurado.
     depends_on:
-      - mysql-db
+      mysql-db:
+        condition: service_healthy
     environment:
-      - PMA_HOST=mysql-db
-      - PMA_PORT=3306
-      - PMA_ARBITRARY=1
+      PMA_HOST: mysql-db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 0
+    expose:
+      - "80"
     networks:
       - wso2am_network
+    profiles:
+      - tools
+    restart: unless-stopped
 
 volumes:
   mysql_data:

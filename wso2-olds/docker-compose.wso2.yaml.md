@@ -15,22 +15,22 @@ services:
     depends_on:
       - mysql-db
     environment:
-      - WSO2_USER=wso2user
-      - WSO2_PASSWORD=wso2pass
+      - WSO2_USER=${APIM_ADMIN_USER}
+      - WSO2_PASSWORD=${APIM_ADMIN_PASSWORD}
       - WSO2_DATABASE_HOST=mysql-db
       - WSO2_DATABASE_PORT=3306
       - WSO2_DATABASE_NAME=wso2amdb
       - WSO2_DATABASE_USER=wso2amdbuser
-      - WSO2_DATABASE_PASSWORD=wso2amdbpass
+      - WSO2_DATABASE_PASSWORD=${APIM_DB_PASSWORD}
     networks:
       - wso2am_network
   mysql-db:
     image: 'mysql:5.7'
     container_name: mysql-db
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_USER: wso2amdbuser
-      MYSQL_PASSWORD: wso2amdbpass
+      MYSQL_PASSWORD: ${APIM_DB_PASSWORD}
       MYSQL_DATABASE: wso2amdb
     networks:
       - wso2am_network
