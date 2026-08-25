@@ -52,6 +52,32 @@ Portas internas esperadas:
 
 Use domínios reais nas variáveis `APIM_HOSTNAME`, `APIM_MGT_BASE_URL`, `APIM_GATEWAY_HTTP_URL`, `APIM_GATEWAY_HTTPS_URL`, `APIM_GATEWAY_WS_URL` e `APIM_GATEWAY_WSS_URL`.
 
+### Coolify/Traefik com backend HTTPS
+
+As portas `9443` e `8243` do WSO2 aceitam somente HTTPS internamente. Se o domínio retornar `Bad Request: This combination of host and port requires TLS`, o Traefik está tentando falar HTTP com uma porta TLS do WSO2.
+
+No Coolify, exponha apenas a porta que o domínio deve usar:
+
+- `9443` para Publisher, DevPortal, Admin Console e Carbon.
+- `8243` para o Gateway HTTPS de consumo das APIs.
+
+Em `Custom Docker Labels`/`Traefik Labels`, configure o serviço do Coolify para falar HTTPS com o backend:
+
+```ini
+traefik.http.services.<NOME_DO_SERVICO>.loadbalancer.server.scheme=https
+traefik.http.services.<NOME_DO_SERVICO>.loadbalancer.server.port=8243
+```
+
+Use `9443` no `server.port` quando o domínio for para os consoles de administração. Para `gateway.noogym.com`, normalmente use `8243`.
+
+Se o Traefik rejeitar o certificado interno autoassinado do WSO2, configure um server transport inseguro no Coolify/Traefik:
+
+```ini
+traefik.http.services.<NOME_DO_SERVICO>.loadbalancer.servertransport=insecure-transport@file
+```
+
+Com Cloudflare em proxy ativo, mantenha o modo SSL/TLS como `Full` ou `Full (Strict)`. Evite `Flexible`, porque ele pode forçar HTTP entre Cloudflare e Traefik.
+
 ## Observações
 
 - O volume `wso2_repository` persiste apenas artefatos de runtime em `repository/deployment/server`.
