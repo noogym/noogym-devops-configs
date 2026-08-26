@@ -33,6 +33,13 @@ services:
       - "8243"
       - "8280"
       - "9099"
+    labels:
+      caddy: ${CADDY_MGT_HOST:-gateway.noogym.com}
+      caddy.reverse_proxy: "https://{{upstreams 9443}}"
+      caddy.reverse_proxy.transport: http
+      caddy.reverse_proxy.transport.tls_insecure_skip_verify: ""
+      caddy.reverse_proxy.transport.tls_server_name: ${CADDY_MGT_TLS_SERVER_NAME:-gateway.noogym.com}
+      caddy_ingress_network: ${CADDY_INGRESS_NETWORK:-coolify}
     networks:
       - wso2am_network
     healthcheck:
@@ -54,7 +61,7 @@ services:
     expose:
       - "8080"
     labels:
-      caddy: ${CADDY_GATEWAY_HOST:-gateway.noogym.com}
+      caddy: ${CADDY_GATEWAY_HOST:-api-gateway.noogym.com}
       caddy.reverse_proxy: "{{upstreams 8080}}"
       caddy_ingress_network: ${CADDY_INGRESS_NETWORK:-coolify}
     networks:
