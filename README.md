@@ -82,6 +82,8 @@ caddy_ingress_network=coolify
 
 Para evitar o mesmo problema no Gateway HTTPS do WSO2 (`8243`), o compose também expõe o serviço `gateway-proxy` na porta HTTP `8080`. Esse proxy interno recebe HTTP do Caddy e chama o WSO2 em HTTPS na porta `8243`, com verificação TLS interna desativada para aceitar o certificado autoassinado do WSO2. A configuração do Nginx é copiada para dentro da imagem em build time, então o Coolify não precisa montar arquivo de configuração do host.
 
+O healthcheck do `gateway-proxy` usa `/healthz`, respondido localmente pelo Nginx com `204`. Isso evita chamadas periódicas para `/` no Gateway WSO2, que aparecem no log como `Message dispatched to the main sequence. Invalid URL.`.
+
 Para o host público de consumo das APIs, defina:
 
 ```env

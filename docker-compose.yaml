@@ -67,7 +67,7 @@ services:
     networks:
       - wso2am_network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/ || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/healthz || exit 1"]
       interval: 20s
       timeout: 10s
       retries: 12
