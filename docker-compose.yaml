@@ -37,10 +37,10 @@ services:
       - wso2am_network
     healthcheck:
       test: ["CMD-SHELL", "curl -ksf https://localhost:9443/carbon/ >/dev/null || exit 1"]
-      interval: 20s
+      interval: 30s
       timeout: 10s
-      retries: 30
-      start_period: 180s
+      retries: 40
+      start_period: 900s
     restart: unless-stopped
 
   mgt-proxy:
@@ -50,7 +50,7 @@ services:
     container_name: mgt-proxy
     depends_on:
       api-manager:
-        condition: service_healthy
+        condition: service_started
     expose:
       - "8081"
     labels:
@@ -74,7 +74,7 @@ services:
     container_name: gateway-proxy
     depends_on:
       api-manager:
-        condition: service_healthy
+        condition: service_started
     expose:
       - "8080"
     labels:

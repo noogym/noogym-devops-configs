@@ -333,6 +333,8 @@ o WSO2 ainda esta usando a config default ou uma config antiga.
 5. Sempre verificar `/config/caddy/Caddyfile.autosave` depois de mudar dominios no Coolify.
 6. Sempre fazer rebuild do `api-manager` quando mudar `wso2-config/`.
 7. Se o ambiente foi inicializado com `localhost`, dados persistidos no MySQL podem manter callbacks OAuth antigos. Em ambiente novo, recriar os volumes e mais simples. Em ambiente com dados, corrigir as entradas persistidas no banco com cuidado.
+8. `mgt-proxy` e `gateway-proxy` dependem apenas de `service_started` do `api-manager`. Eles nao devem esperar `service_healthy`, porque seus healthchecks sao locais e o WSO2 pode demorar muitos minutos para ficar pronto no primeiro startup.
+9. O healthcheck do `api-manager` e deliberadamente tolerante (`start_period` longo), para evitar que o Coolify marque o deploy como falho enquanto o WSO2 ainda esta inicializando.
 
 ## Consequences
 
