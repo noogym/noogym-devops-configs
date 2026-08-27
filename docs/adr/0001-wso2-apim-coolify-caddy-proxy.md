@@ -353,6 +353,34 @@ Se aparecer:
 
 o WSO2 ainda esta usando a config default ou uma config antiga.
 
+### Erro invalid_callback depois de corrigir hostname e proxyPort
+
+Depois que `localhost` e `:9443` desaparecem das URLs publicas, ainda pode aparecer:
+
+```text
+authenticationendpoint/oauth2_error.do?oauthErrorCode=invalid_callback
+Registered callback does not match with the provided url.
+```
+
+Isso significa que o proxy e o hostname ja estao corretos, mas a aplicacao OAuth interna do WSO2 foi registrada anteriormente com outro callback.
+
+Exemplos de callbacks antigos:
+
+```text
+https://localhost:9443/publisher/services/auth/callback/login
+https://gateway.noogym.com:9443/publisher/services/auth/callback/login
+```
+
+Callback correto:
+
+```text
+https://gateway.noogym.com/publisher/services/auth/callback/login
+```
+
+Em ambiente novo, a solucao mais limpa e remover os containers do projeto, apagar os volumes `mysql-data` e `wso2-repository`, e fazer redeploy com rebuild. Assim o WSO2 recria as aplicacoes OAuth internas ja com `APIM_HOSTNAME`, `APIM_MGT_BASE_URL` e `proxyPort` corretos.
+
+Em ambiente com dados importantes, nao apagar volumes. Corrigir com cuidado a aplicacao OAuth persistida no banco, procurando callbacks com `localhost:9443` ou `gateway.noogym.com:9443`.
+
 ## Operational rules
 
 1. O dominio `gateway.noogym.com` deve ficar no servico `mgt-proxy`, porta `8081`.
@@ -361,7 +389,7 @@ o WSO2 ainda esta usando a config default ou uma config antiga.
 4. Nao trocar apenas a porta do dominio dentro do servico `api-manager`; isso gera `api-manager:8081`, que nao existe.
 5. Sempre verificar `/config/caddy/Caddyfile.autosave` depois de mudar dominios no Coolify.
 6. Sempre fazer rebuild do `api-manager` quando mudar `wso2-config/`.
-7. Se o ambiente foi inicializado com `localhost`, dados persistidos no MySQL podem manter callbacks OAuth antigos. Em ambiente novo, recriar os volumes e mais simples. Em ambiente com dados, corrigir as entradas persistidas no banco com cuidado.
+7. Se o ambiente foi inicializado com `localhost` ou `:9443` publico, dados persistidos no MySQL podem manter callbacks OAuth antigos e causar `invalid_callback`. Em ambiente novo, recriar os volumes e mais simples. Em ambiente com dados, corrigir as entradas persistidas no banco com cuidado.
 8. `mgt-proxy` e `gateway-proxy` dependem apenas de `service_started` do `api-manager`. Eles nao devem esperar `service_healthy`, porque seus healthchecks sao locais e o WSO2 pode demorar muitos minutos para ficar pronto no primeiro startup.
 9. O healthcheck do `api-manager` e deliberadamente tolerante (`start_period` longo), para evitar que o Coolify marque o deploy como falho enquanto o WSO2 ainda esta inicializando.
 10. Nao configurar JDBC URLs completas em variaveis do Coolify. O `deployment.toml` deve montar essas URLs internamente com `&amp;`, porque o WSO2 transforma essa configuracao em XML.
