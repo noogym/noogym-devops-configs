@@ -33,13 +33,6 @@ services:
       - "8243"
       - "8280"
       - "9099"
-    labels:
-      caddy: ${CADDY_MGT_HOST:-gateway.noogym.com}
-      caddy.reverse_proxy: "https://{{upstreams 9443}}"
-      caddy.reverse_proxy.transport: http
-      caddy.reverse_proxy.transport.tls_insecure_skip_verify: ""
-      caddy.reverse_proxy.transport.tls_server_name: ${CADDY_MGT_TLS_SERVER_NAME:-gateway.noogym.com}
-      caddy_ingress_network: ${CADDY_INGRESS_NETWORK:-coolify}
     networks:
       - wso2am_network
     healthcheck:
@@ -48,6 +41,30 @@ services:
       timeout: 10s
       retries: 30
       start_period: 180s
+    restart: unless-stopped
+
+  mgt-proxy:
+    build:
+      context: ./docker/mgt-proxy
+    image: noogym-wso2-mgt-proxy:1.0
+    container_name: mgt-proxy
+    depends_on:
+      api-manager:
+        condition: service_healthy
+    expose:
+      - "8081"
+    labels:
+      caddy: ${CADDY_MGT_HOST:-gateway.noogym.com}
+      caddy.reverse_proxy: "{{upstreams 8081}}"
+      caddy_ingress_network: ${CADDY_INGRESS_NETWORK:-coolify}
+    networks:
+      - wso2am_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8081/healthz || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
     restart: unless-stopped
 
   gateway-proxy:
