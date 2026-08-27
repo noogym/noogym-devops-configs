@@ -30,6 +30,8 @@ Nao configure `SHARED_DB_URL` nem `APIM_DB_URL` no Coolify. As JDBC URLs sao mon
 
 O `deployment.toml` tambem define `proxyPort = 443` para o transporte HTTPS. Isso evita que o WSO2 gere redirects OAuth com a porta interna `9443`.
 
+Defina `APIM_DEVPORTAL_URL` com a URL publica completa do DevPortal, por exemplo `https://gateway.noogym.com/devportal`. Sem isso, o WSO2 pode usar o default `https://localhost:9443/devportal` em links gerados pelo Publisher/DevPortal.
+
 ## Executar Localmente
 
 ```bash

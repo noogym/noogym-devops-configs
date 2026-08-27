@@ -48,6 +48,9 @@ key_password = "wso2carbon"
 [apim]
 gateway_type = "Regular,APK,AWS,Azure,Kong,Envoy,APIPlatform"
 
+[apim.devportal]
+url = "$env{APIM_DEVPORTAL_URL}"
+
 [[apim.gateway.environment]]
 name = "Default"
 type = "hybrid"
