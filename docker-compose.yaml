@@ -1,7 +1,8 @@
 services:
   api-manager:
     build:
-      context: ./docker/wso2am
+      context: .
+      dockerfile: ./docker/wso2am/Dockerfile
     image: noogym-wso2am:4.7.0-mysql
     container_name: api-manager
     depends_on:
@@ -26,7 +27,6 @@ services:
       APIM_DB_USER: ${APIM_DB_USER:?set APIM_DB_USER}
       APIM_DB_PASSWORD: ${APIM_DB_PASSWORD:?set APIM_DB_PASSWORD}
     volumes:
-      - ./wso2-config:/home/wso2carbon/wso2-config-volume:ro
       - wso2_repository:/home/wso2carbon/wso2am-4.7.0/repository/deployment/server
     expose:
       - "9443"

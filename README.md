@@ -44,6 +44,8 @@ docker compose --env-file .env --profile tools up -d --build
 
 No Coolify, configure as variaveis do `.env.example` como environment variables/secrets do servico.
 
+As decisoes de arquitetura, diagnosticos e comandos de validacao estao documentados em `docs/adr/0001-wso2-apim-coolify-caddy-proxy.md`.
+
 Portas internas esperadas:
 
 - `8081`: proxy HTTP interno para Publisher, DevPortal, Admin e Carbon. Use esta porta no Coolify/Caddy para `gateway.noogym.com`.
@@ -114,6 +116,6 @@ Com Cloudflare em proxy ativo, mantenha o modo SSL/TLS como `Full` ou `Full (Str
 ## Observacoes
 
 - O volume `wso2_repository` persiste apenas artefatos de runtime em `repository/deployment/server`.
-- A configuracao principal fica em `wso2-config/repository/conf/deployment.toml` e e copiada pelo entrypoint oficial da imagem WSO2.
+- A configuracao principal fica em `wso2-config/repository/conf/deployment.toml` e e embutida na imagem `noogym-wso2am:4.7.0-mysql`. O entrypoint oficial da imagem WSO2 copia essa configuracao para o produto antes do startup.
 - O volume `mysql_data` so roda os scripts de inicializacao na primeira criacao. Se alterar nomes de bancos ou usuarios depois, recrie o volume conscientemente.
 - O phpMyAdmin nao sobe por padrao e `PMA_ARBITRARY` fica desativado.
