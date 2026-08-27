@@ -3,6 +3,10 @@ hostname = "$env{APIM_HOSTNAME}"
 base_path = "$env{APIM_MGT_BASE_URL}"
 server_role = "default"
 
+[transport.https.properties]
+proxyPort = 443
+proxyHost = "$env{APIM_HOSTNAME}"
+
 [super_admin]
 username = "$env{APIM_ADMIN_USER}"
 password = "$env{APIM_ADMIN_PASSWORD}"

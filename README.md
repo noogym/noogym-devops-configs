@@ -28,6 +28,8 @@ Troque todas as senhas `change-me-*` antes de subir.
 
 Nao configure `SHARED_DB_URL` nem `APIM_DB_URL` no Coolify. As JDBC URLs sao montadas em `wso2-config/repository/conf/deployment.toml` a partir de `SHARED_DB_NAME` e `APIM_DB_NAME`, com `&amp;` ja escapado para o XML interno gerado pelo WSO2. Usar `&` cru em uma JDBC URL persistida no ambiente quebra o startup com erro de datasource.
 
+O `deployment.toml` tambem define `proxyPort = 443` para o transporte HTTPS. Isso evita que o WSO2 gere redirects OAuth com a porta interna `9443`.
+
 ## Executar Localmente
 
 ```bash

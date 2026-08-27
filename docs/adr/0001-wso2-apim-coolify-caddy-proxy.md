@@ -186,7 +186,19 @@ Ele usa env vars:
 [server]
 hostname = "$env{APIM_HOSTNAME}"
 base_path = "$env{APIM_MGT_BASE_URL}"
+
+[transport.https.properties]
+proxyPort = 443
+proxyHost = "$env{APIM_HOSTNAME}"
 ```
+
+O `proxyPort = 443` e necessario para que o WSO2 gere redirects e callbacks OAuth usando a porta publica do proxy, e nao a porta interna `9443`. Sem isso, o Publisher pode sair de `localhost`, mas ainda redirecionar para URLs como:
+
+```text
+https://gateway.noogym.com:9443/authenticationendpoint/login.do
+```
+
+A documentacao oficial do WSO2 para reverse proxy/load balancer recomenda configurar o proxy port no `deployment.toml` com `[transport.https.properties] proxyPort = 443` quando o acesso publico passa pelo proxy em `443`.
 
 As JDBC URLs tambem ficam neste arquivo e sao montadas a partir dos nomes dos bancos:
 
@@ -353,6 +365,7 @@ o WSO2 ainda esta usando a config default ou uma config antiga.
 8. `mgt-proxy` e `gateway-proxy` dependem apenas de `service_started` do `api-manager`. Eles nao devem esperar `service_healthy`, porque seus healthchecks sao locais e o WSO2 pode demorar muitos minutos para ficar pronto no primeiro startup.
 9. O healthcheck do `api-manager` e deliberadamente tolerante (`start_period` longo), para evitar que o Coolify marque o deploy como falho enquanto o WSO2 ainda esta inicializando.
 10. Nao configurar JDBC URLs completas em variaveis do Coolify. O `deployment.toml` deve montar essas URLs internamente com `&amp;`, porque o WSO2 transforma essa configuracao em XML.
+11. Manter `[transport.https.properties] proxyPort = 443`, para impedir que `9443` vaze para redirects e callbacks publicos.
 
 ## Consequences
 
