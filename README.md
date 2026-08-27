@@ -26,7 +26,7 @@ $bytes = [byte[]]::new(32)
 
 Troque todas as senhas `change-me-*` antes de subir.
 
-Nas variaveis `SHARED_DB_URL` e `APIM_DB_URL`, mantenha `&amp;` entre os parametros da query string. O WSO2 gera XML interno a partir do `deployment.toml`, entao `&` cru quebra o parser.
+Nao configure `SHARED_DB_URL` nem `APIM_DB_URL` no Coolify. As JDBC URLs sao montadas em `wso2-config/repository/conf/deployment.toml` a partir de `SHARED_DB_NAME` e `APIM_DB_NAME`, com `&amp;` ja escapado para o XML interno gerado pelo WSO2. Usar `&` cru em uma JDBC URL persistida no ambiente quebra o startup com erro de datasource.
 
 ## Executar Localmente
 

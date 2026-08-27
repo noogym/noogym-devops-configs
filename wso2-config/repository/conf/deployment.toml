@@ -13,7 +13,7 @@ type = "database_unique_id"
 
 [database.shared_db]
 type = "mysql"
-url = "$env{SHARED_DB_URL}"
+url = "jdbc:mysql://mysql-db:3306/$env{SHARED_DB_NAME}?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC"
 username = "$env{SHARED_DB_USER}"
 password = "$env{SHARED_DB_PASSWORD}"
 driver = "com.mysql.cj.jdbc.Driver"
@@ -23,7 +23,7 @@ pool_options.validationInterval = 10000
 
 [database.apim_db]
 type = "mysql"
-url = "$env{APIM_DB_URL}"
+url = "jdbc:mysql://mysql-db:3306/$env{APIM_DB_NAME}?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC"
 username = "$env{APIM_DB_USER}"
 password = "$env{APIM_DB_PASSWORD}"
 driver = "com.mysql.cj.jdbc.Driver"

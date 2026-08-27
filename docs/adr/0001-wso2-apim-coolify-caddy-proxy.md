@@ -188,6 +188,23 @@ hostname = "$env{APIM_HOSTNAME}"
 base_path = "$env{APIM_MGT_BASE_URL}"
 ```
 
+As JDBC URLs tambem ficam neste arquivo e sao montadas a partir dos nomes dos bancos:
+
+```toml
+[database.shared_db]
+url = "jdbc:mysql://mysql-db:3306/$env{SHARED_DB_NAME}?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC"
+
+[database.apim_db]
+url = "jdbc:mysql://mysql-db:3306/$env{APIM_DB_NAME}?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC"
+```
+
+Nao usar `SHARED_DB_URL` nem `APIM_DB_URL` como variaveis do Coolify. Se uma JDBC URL for definida com `&` cru, o WSO2 gera um `master-datasources.xml` invalido e falha antes de abrir `9443`:
+
+```text
+Unexpected character '='; expected a semi-colon after the reference for entity 'allowPublicKeyRetrieval'
+Name [jdbc/SHARED_DB] is not bound in this Context
+```
+
 O `wso2-config/` e embutido na imagem `noogym-wso2am:4.7.0-mysql` pelo Dockerfile. Isso foi decidido porque, no Coolify, o bind mount para `/home/wso2carbon/wso2-config-volume` nao estava chegando como esperado. O resultado era o WSO2 subir com o `deployment.toml` default:
 
 ```toml
@@ -335,6 +352,7 @@ o WSO2 ainda esta usando a config default ou uma config antiga.
 7. Se o ambiente foi inicializado com `localhost`, dados persistidos no MySQL podem manter callbacks OAuth antigos. Em ambiente novo, recriar os volumes e mais simples. Em ambiente com dados, corrigir as entradas persistidas no banco com cuidado.
 8. `mgt-proxy` e `gateway-proxy` dependem apenas de `service_started` do `api-manager`. Eles nao devem esperar `service_healthy`, porque seus healthchecks sao locais e o WSO2 pode demorar muitos minutos para ficar pronto no primeiro startup.
 9. O healthcheck do `api-manager` e deliberadamente tolerante (`start_period` longo), para evitar que o Coolify marque o deploy como falho enquanto o WSO2 ainda esta inicializando.
+10. Nao configurar JDBC URLs completas em variaveis do Coolify. O `deployment.toml` deve montar essas URLs internamente com `&amp;`, porque o WSO2 transforma essa configuracao em XML.
 
 ## Consequences
 
