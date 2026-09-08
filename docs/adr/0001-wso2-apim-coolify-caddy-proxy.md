@@ -244,6 +244,8 @@ Por isso o build do `api-manager` usa o contexto raiz do repo e copia `wso2-conf
 
 O entrypoint oficial da imagem WSO2 copia esse conteudo para o produto antes do startup.
 
+Para a integracao Moesif, a imagem usa um entrypoint customizado antes do entrypoint oficial da WSO2. Esse wrapper aplica `APIM_ANALYTICS_ENABLED` e `MOESIF_KEY` no arquivo `/home/wso2carbon/wso2-config-volume/repository/conf/deployment.toml`. `APIM_ANALYTICS_ENABLED` deve ser `true` ou `false`; quando for `true`, `MOESIF_KEY` e obrigatorio. Depois disso, o entrypoint oficial copia o arquivo final para `/home/wso2carbon/wso2am-4.7.0/repository/conf/deployment.toml`.
+
 ## Diagnostics
 
 ### Verificar a config efetiva do Caddy
@@ -417,12 +419,13 @@ Se ainda houver `localhost` depois do rebuild, tratar como estado antigo persist
 4. Nao trocar apenas a porta do dominio dentro do servico `api-manager`; isso gera `api-manager:8081`, que nao existe.
 5. Sempre verificar `/config/caddy/Caddyfile.autosave` depois de mudar dominios no Coolify.
 6. Sempre fazer rebuild do `api-manager` quando mudar `wso2-config/`.
-7. Se o ambiente foi inicializado com `localhost` ou `:9443` publico, dados persistidos no MySQL podem manter callbacks OAuth antigos e causar `invalid_callback`. Em ambiente novo, recriar os volumes e mais simples. Em ambiente com dados, corrigir as entradas persistidas no banco com cuidado.
-8. `mgt-proxy` e `gateway-proxy` dependem apenas de `service_started` do `api-manager`. Eles nao devem esperar `service_healthy`, porque seus healthchecks sao locais e o WSO2 pode demorar muitos minutos para ficar pronto no primeiro startup.
-9. O healthcheck do `api-manager` e deliberadamente tolerante (`start_period` longo), para evitar que o Coolify marque o deploy como falho enquanto o WSO2 ainda esta inicializando.
-10. Nao configurar JDBC URLs completas em variaveis do Coolify. O `deployment.toml` deve montar essas URLs internamente com `&amp;`, porque o WSO2 transforma essa configuracao em XML.
-11. Manter `[transport.https.properties] proxyPort = 443`, para impedir que `9443` vaze para redirects e callbacks publicos.
-12. Definir `APIM_DEVPORTAL_URL` e `[apim.devportal] url`, para impedir que links entre Publisher e DevPortal usem o default `https://localhost:9443/devportal`.
+7. Para habilitar Moesif, definir `APIM_ANALYTICS_ENABLED=true` e `MOESIF_KEY` como secret/env var no Coolify; para desligar, usar `APIM_ANALYTICS_ENABLED=false`.
+8. Se o ambiente foi inicializado com `localhost` ou `:9443` publico, dados persistidos no MySQL podem manter callbacks OAuth antigos e causar `invalid_callback`. Em ambiente novo, recriar os volumes e mais simples. Em ambiente com dados, corrigir as entradas persistidas no banco com cuidado.
+9. `mgt-proxy` e `gateway-proxy` dependem apenas de `service_started` do `api-manager`. Eles nao devem esperar `service_healthy`, porque seus healthchecks sao locais e o WSO2 pode demorar muitos minutos para ficar pronto no primeiro startup.
+10. O healthcheck do `api-manager` e deliberadamente tolerante (`start_period` longo), para evitar que o Coolify marque o deploy como falho enquanto o WSO2 ainda esta inicializando.
+11. Nao configurar JDBC URLs completas em variaveis do Coolify. O `deployment.toml` deve montar essas URLs internamente com `&amp;`, porque o WSO2 transforma essa configuracao em XML.
+12. Manter `[transport.https.properties] proxyPort = 443`, para impedir que `9443` vaze para redirects e callbacks publicos.
+13. Definir `APIM_DEVPORTAL_URL` e `[apim.devportal] url`, para impedir que links entre Publisher e DevPortal usem o default `https://localhost:9443/devportal`.
 
 ## Consequences
 

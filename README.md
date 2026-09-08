@@ -32,6 +32,8 @@ O `deployment.toml` tambem define `proxyPort = 443` para o transporte HTTPS. Iss
 
 Defina `APIM_DEVPORTAL_URL` com a URL publica completa do DevPortal, por exemplo `https://gateway.noogym.com/devportal`. Sem isso, o WSO2 pode usar o default `https://localhost:9443/devportal` em links gerados pelo Publisher/DevPortal.
 
+Para habilitar analytics via Moesif, defina `APIM_ANALYTICS_ENABLED=true` e configure `MOESIF_KEY` como secret/env var no Coolify. Para desativar, use `APIM_ANALYTICS_ENABLED=false`; nesse caso `MOESIF_KEY` pode ficar vazio. A imagem valida esses valores no startup e escreve o `deployment.toml` final antes do WSO2 iniciar.
+
 ## Executar Localmente
 
 ```bash
@@ -120,6 +122,6 @@ Com Cloudflare em proxy ativo, mantenha o modo SSL/TLS como `Full` ou `Full (Str
 ## Observacoes
 
 - O volume `wso2_repository` persiste apenas artefatos de runtime em `repository/deployment/server`.
-- A configuracao principal fica em `wso2-config/repository/conf/deployment.toml` e e embutida na imagem `noogym-wso2am:4.7.0-mysql`. O entrypoint oficial da imagem WSO2 copia essa configuracao para o produto antes do startup.
+- A configuracao principal fica em `wso2-config/repository/conf/deployment.toml` e e embutida na imagem `noogym-wso2am:4.7.0-mysql`. O entrypoint customizado aplica `APIM_ANALYTICS_ENABLED` e `MOESIF_KEY`, depois chama o entrypoint oficial da WSO2, que copia essa configuracao para o produto antes do startup.
 - O volume `mysql_data` so roda os scripts de inicializacao na primeira criacao. Se alterar nomes de bancos ou usuarios depois, recrie o volume conscientemente.
 - O phpMyAdmin nao sobe por padrao e `PMA_ARBITRARY` fica desativado.
