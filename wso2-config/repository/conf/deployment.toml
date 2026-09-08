@@ -77,8 +77,11 @@ name = "JWT"
 issuer = "org.wso2.is.key.manager.tokenpersistence.issuer.ExtendedJWTTokenIssuer"
 
 [apim.analytics]
-enable = false
+enable = true
 type = "moesif"
+
+[apim.analytics.properties]
+moesifKey = "eyJhcHAiOiI5MzoxMzk3IiwidmVyIjoiMi4xIiwib3JnIjoiODc6MTAzNiIsImlhdCI6MTc4ODIyMDgwMH0.a4Wf98CutcuCG7Gq-h1zkGbfbXOnJ5UIjZD_lEedVpA"
 
 [apim.ai]
 enable = false
